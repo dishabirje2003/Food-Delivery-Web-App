@@ -30,3 +30,4 @@ const connectDB = async () => {
 };
 
 module.exports = connectDB;
+console.log("Mongo URI in use:", process.env.MONGO_URI);

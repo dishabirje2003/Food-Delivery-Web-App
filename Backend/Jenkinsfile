@@ -48,4 +48,13 @@ pipeline {
             }
         }
     }
+
+    post {
+        success {
+            echo '✅ Backend deployed successfully!'
+        }
+        failure {
+            echo '❌ Deployment failed. Check console output for errors.'
+        }
+    }
 }

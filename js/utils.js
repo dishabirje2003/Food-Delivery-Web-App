@@ -4,17 +4,40 @@
 const API_BASE_URL = "http://localhost:5000";
 
 // Helper function to get full image URL
+// function getImageUrl(imagePath) {
+//   if (!imagePath) return '';
+//   // If it's already a full URL (http/https), return as is
+//   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+//     return imagePath;
+//   }
+//   // If it's a relative path starting with /, prepend backend URL
+//   if (imagePath.startsWith('/')) {
+//     return `${API_BASE_URL}${imagePath}`;
+//   }
+//   // Otherwise, assume it's a relative path and prepend backend URL with /
+//   return `${API_BASE_URL}/${imagePath}`;
+// }
+
 function getImageUrl(imagePath) {
-  if (!imagePath) return '';
-  // If it's already a full URL (http/https), return as is
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+  // ✅ If image missing → show placeholder
+  if (!imagePath) {
+    return "https://via.placeholder.com/400x200?text=No+Image";
+  }
+
+  // ✅ Cloudinary or any full URL
+  if (
+    imagePath.startsWith("http://") ||
+    imagePath.startsWith("https://")
+  ) {
     return imagePath;
   }
-  // If it's a relative path starting with /, prepend backend URL
-  if (imagePath.startsWith('/')) {
+
+  // ✅ Old local uploads from backend
+  if (imagePath.startsWith("/")) {
     return `${API_BASE_URL}${imagePath}`;
   }
-  // Otherwise, assume it's a relative path and prepend backend URL with /
+
+  // ✅ Fallback
   return `${API_BASE_URL}/${imagePath}`;
 }
 

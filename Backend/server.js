@@ -33,6 +33,8 @@
 // });
 
 
+
+
 require("dotenv").config();
 
 const express = require("express");
@@ -69,3 +71,6 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
+const cloudinary = require("./config/cloudinary");
+
+//console.log("Cloudinary configured:", cloudinary.config().cloud_name);

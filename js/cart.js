@@ -55,7 +55,7 @@ async function loadCart() {
                onerror="this.src='https://via.placeholder.com/120x120?text=${encodeURIComponent(item.name || '')}'">
           <div style="flex: 1;">
             <h4 style="margin: 0 0 0.5rem 0; color: var(--text-dark);">${escapedName}</h4>
-            <p style="margin: 0; color: var(--text-light); font-size: 0.9rem;">$${itemPrice.toFixed(2)} each</p>
+            <p style="margin: 0; color: var(--text-light); font-size: 0.9rem;">₹${itemPrice.toFixed(2)} each</p>
           </div>
           <div style="display: flex; align-items: center; gap: 1rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem;">
@@ -67,7 +67,7 @@ async function loadCart() {
                       style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0 0.5rem; color: var(--primary-color);">+</button>
             </div>
             <div style="text-align: right; min-width: 80px;">
-              <strong style="color: var(--primary-color); font-size: 1.1rem;">$${itemTotal.toFixed(2)}</strong>
+              <strong style="color: var(--primary-color); font-size: 1.1rem;">₹${itemTotal.toFixed(2)}</strong>
             </div>
             <button onclick="removeItem('${itemId}')" 
                     class="btn" 
@@ -80,8 +80,8 @@ async function loadCart() {
     }).join("");
 
     const total = subtotal + deliveryFee;
-    document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById("total").textContent = `$${total.toFixed(2)}`;
+    document.getElementById("subtotal").textContent = `₹${subtotal.toFixed(2)}`;
+    document.getElementById("total").textContent = `₹${total.toFixed(2)}`;
     summary.style.display = "block";
   } catch (error) {
     console.error("Error loading cart:", error);

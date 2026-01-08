@@ -81,7 +81,7 @@ pipeline {
         stage('Deploy Frontend on EC2') {
             steps {
                 sshagent(['ec2-ssh-key']) {
-                    sh """
+                    sh '''
                     ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << EOF
                       docker stop food-frontend-container || true
                       docker rm food-frontend-container || true
@@ -93,7 +93,7 @@ pipeline {
                         -p 80:80 \
                         ${DOCKER_USER}/food-frontend:latest
                     EOF
-                    """
+                    '''
                 }
             }
         }

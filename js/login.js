@@ -23,6 +23,24 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Check for admin credentials first
+      // Option 1: admin@gmail.com / admin123 (database admin)
+      // Option 2: Admin / @foodmanager (hardcoded admin)
+      if ((email === "admin@gmail.com" && password === "admin123") || 
+          (email === "Admin" && password === "@foodmanager")) {
+        // Store admin user
+        const adminUser = {
+          email: email === "admin@gmail.com" ? "admin@gmail.com" : "Admin",
+          name: "Admin",
+          isAdmin: true,
+          role: "admin"
+        };
+        localStorage.setItem("user", JSON.stringify(adminUser));
+        window.location.href = "admin.html";
+        return;
+      }
+
+      // Regular user login - try backend API
       try {
         const res = await fetch("http://localhost:5000/api/auth/login", {
           method: "POST",
@@ -40,17 +58,23 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        // Save logged-in user (SESSION ONLY)
-        localStorage.setItem("user", JSON.stringify(data.user));
-
-        // Redirect based on role
-        if (data.user.role === "admin") {
+        // Save logged-in user
+        const userData = data.user;
+        
+        // Check if user is admin from backend response
+        if (userData.isAdmin || userData.role === "admin" || userData.email === "admin@gmail.com") {
+          userData.isAdmin = true;
+          userData.role = "admin";
+          localStorage.setItem("user", JSON.stringify(userData));
           window.location.href = "admin.html";
         } else {
+          localStorage.setItem("user", JSON.stringify(userData));
           window.location.href = "../index.html";
         }
+
       } catch (err) {
-        errorMessage.textContent = "Server error. Try again.";
+        console.error("Login error:", err);
+        errorMessage.textContent = "Server error. Please check if backend is running.";
         errorMessage.style.display = "block";
       }
     });

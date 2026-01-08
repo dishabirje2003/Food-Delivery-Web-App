@@ -98,8 +98,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function addToCart(id, name, price, image) {
   const user = Storage.getUser();
-  if (!user) {
+  if (!user || !user.id) {
     alert("Please login first to add items to cart");
+    // Redirect to login page
+    window.location.href = "login.html";
     return;
   }
 
@@ -108,7 +110,7 @@ async function addToCart(id, name, price, image) {
       productId: id,
       name,
       price,
-      image,
+      image, // Cloudinary URL from MongoDB
       quantity: 1
     });
     alert("Added to cart ✅");
@@ -117,3 +119,6 @@ async function addToCart(id, name, price, image) {
     alert("Failed to add item to cart. Please try again.");
   }
 }
+
+// Make addToCart globally accessible for onclick handlers
+window.addToCart = addToCart;

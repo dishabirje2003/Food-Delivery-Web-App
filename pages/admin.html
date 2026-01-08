@@ -23,6 +23,7 @@
                 <button class="admin-tab active" onclick="showTab('addRestaurant')">Add Restaurant</button>
                 <button class="admin-tab" onclick="showTab('addMenuItem')">Add Food Item</button>
                 <button class="admin-tab" onclick="showTab('viewRestaurants')">View Restaurants</button>
+                <button class="admin-tab" onclick="showTab('viewMenus')">View Menus</button>
             </div>
 
             <!-- Add Restaurant Tab -->
@@ -54,6 +55,19 @@
                             <label for="restaurantDescription">Description</label>
                             <textarea id="restaurantDescription" name="description" required></textarea>
                         </div>
+                        <div class="form-group">
+                            <label for="restaurantDeliveryFee">Delivery Fee (₹)</label>
+                            <input type="number" id="restaurantDeliveryFee" name="deliveryFee" min="0" step="0.01" value="2.99" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="restaurantMinOrder">Minimum Order (₹)</label>
+                            <input type="number" id="restaurantMinOrder" name="minOrder" min="0" step="0.01" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="restaurantAreas">Delivery Areas (comma-separated)</label>
+                            <input type="text" id="restaurantAreas" name="areas" required placeholder="e.g., MG Road, Belgaum, Indiranagar">
+                            <small style="color: var(--text-light); font-size: 0.85rem;">Enter areas separated by commas</small>
+                        </div>
                         <button type="submit" class="btn btn-primary" style="width: 100%;">Add Restaurant</button>
                     </form>
                     <div id="restaurantSuccess" style="display: none; margin-top: 1rem; padding: 1rem; background: #d4edda; color: #155724; border-radius: 8px;">
@@ -82,7 +96,7 @@
                             <textarea id="menuItemDescription" name="description" required></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="menuItemPrice">Price ($)</label>
+                            <label for="menuItemPrice">Price (₹)</label>
                             <input type="number" id="menuItemPrice" name="price" min="0" step="0.01" required>
                         </div>
                         <div class="form-group">
@@ -106,8 +120,107 @@
                     </div>
                 </div>
             </div>
+
+            <!-- View Menus Tab -->
+            <div id="viewMenus" class="admin-tab-content">
+                <div style="margin-bottom: 2rem;">
+                    <h2 style="margin-bottom: 1rem;">All Menu Items</h2>
+                    <div id="menusTableContainer">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
+
+    <!-- Edit Restaurant Modal -->
+    <div id="editRestaurantModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="closeEditRestaurantModal()">&times;</span>
+            <h2>Edit Restaurant</h2>
+            <form id="editRestaurantForm">
+                <input type="hidden" id="editRestaurantId">
+                <div class="form-group">
+                    <label for="editRestaurantName">Restaurant Name</label>
+                    <input type="text" id="editRestaurantName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editRestaurantCuisine">Cuisine Type</label>
+                    <input type="text" id="editRestaurantCuisine" required>
+                </div>
+                <div class="form-group">
+                    <label for="editRestaurantRating">Rating</label>
+                    <input type="number" id="editRestaurantRating" min="0" max="5" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label for="editRestaurantDeliveryTime">Delivery Time</label>
+                    <input type="text" id="editRestaurantDeliveryTime" required>
+                </div>
+                <div class="form-group">
+                    <label for="editRestaurantImage">Image URL</label>
+                    <input type="url" id="editRestaurantImage" required>
+                </div>
+                <div class="form-group">
+                    <label for="editRestaurantDescription">Description</label>
+                    <textarea id="editRestaurantDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editRestaurantDeliveryFee">Delivery Fee (₹)</label>
+                    <input type="number" id="editRestaurantDeliveryFee" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="editRestaurantMinOrder">Minimum Order (₹)</label>
+                    <input type="number" id="editRestaurantMinOrder" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="editRestaurantAreas">Delivery Areas (comma-separated)</label>
+                    <input type="text" id="editRestaurantAreas" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Update Restaurant</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Menu Modal -->
+    <div id="editMenuModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="closeEditMenuModal()">&times;</span>
+            <h2>Edit Menu Item</h2>
+            <form id="editMenuForm">
+                <input type="hidden" id="editMenuId">
+                <div class="form-group">
+                    <label for="editMenuRestaurantId">Restaurant</label>
+                    <select id="editMenuRestaurantId" required>
+                        <option value="">Select Restaurant</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editMenuName">Item Name</label>
+                    <input type="text" id="editMenuName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editMenuDescription">Description</label>
+                    <textarea id="editMenuDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editMenuPrice">Price (₹)</label>
+                    <input type="number" id="editMenuPrice" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="editMenuImage">Image URL</label>
+                    <input type="url" id="editMenuImage" required>
+                </div>
+                <div class="form-group">
+                    <label for="editMenuAvailable">Available</label>
+                    <select id="editMenuAvailable" required>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Update Menu Item</button>
+            </form>
+        </div>
+    </div>
 
     <footer>
         <p>&copy; 2024 FoodExpress. All rights reserved.</p>

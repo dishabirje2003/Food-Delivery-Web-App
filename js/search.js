@@ -143,8 +143,8 @@ function displaySearchResults(restaurants, menuItems, query) {
                                     <span>⏱️ ${restaurant.deliveryTime}</span>
                                 </div>
                                 <div class="delivery-info">
-                                    <span class="delivery-fee">💰 Delivery: $${deliveryFee.toFixed(2)}</span>
-                                    ${minOrder > 0 ? `<span>Min: $${minOrder.toFixed(2)}</span>` : ''}
+                                    <span class="delivery-fee">💰 Delivery: ₹${deliveryFee.toFixed(2)}</span>
+                                    ${minOrder > 0 ? `<span>Min: ₹${minOrder.toFixed(2)}</span>` : ''}
                                 </div>
                             </div>
                         `;
@@ -191,36 +191,44 @@ function displaySearchResults(restaurants, menuItems, query) {
     container.innerHTML = html;
 }
 
-function addToCartFromSearch(id, name, price, image, restaurantId) {
+async function addToCartFromSearch(id, name, price, image, restaurantId) {
     // Check if user is logged in
     const user = Storage.getUser();
-    if (!user) {
+    if (!user || !user.id) {
         alert('Please login to add items to your cart.');
-        redirectToLogin();
+        // Redirect to login page
+        const currentPath = window.location.pathname;
+        const isInPages = currentPath.includes('/pages/') || currentPath.includes('pages\\');
+        const loginPath = isInPages ? 'login.html' : 'pages/login.html';
+        window.location.href = loginPath;
         return;
     }
     
-    Storage.addToCart({
-        id: id,
-        name: name,
-        price: price,
-        image: image,
-        restaurantId: restaurantId,
-        quantity: 1
-    });
+    try {
+        await Storage.addToCart({
+            productId: id, // Use productId to match backend API
+            name: name,
+            price: price,
+            image: image, // Cloudinary URL from MongoDB
+            quantity: 1
+        });
     
-    // Show feedback
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = 'Added! ✓';
-    btn.disabled = true;
-    btn.style.background = '#51cf66';
-    
-    setTimeout(() => {
-        btn.textContent = originalText;
-        btn.disabled = false;
-        btn.style.background = '';
-    }, 1500);
+        // Show feedback
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = 'Added! ✓';
+        btn.disabled = true;
+        btn.style.background = '#51cf66';
+        
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+            btn.style.background = '';
+        }, 1500);
+    } catch (error) {
+        console.error("Error adding to cart:", error);
+        alert("Failed to add item to cart. Please try again.");
+    }
 }
 
 // Make addToCartFromSearch globally accessible

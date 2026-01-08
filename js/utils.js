@@ -3,41 +3,34 @@
 // Backend API base URL
 const API_BASE_URL = "http://localhost:5000";
 
-// Helper function to get full image URL
-// function getImageUrl(imagePath) {
-//   if (!imagePath) return '';
-//   // If it's already a full URL (http/https), return as is
-//   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-//     return imagePath;
-//   }
-//   // If it's a relative path starting with /, prepend backend URL
-//   if (imagePath.startsWith('/')) {
-//     return `${API_BASE_URL}${imagePath}`;
-//   }
-//   // Otherwise, assume it's a relative path and prepend backend URL with /
-//   return `${API_BASE_URL}/${imagePath}`;
-// }
-
+/**
+ * Helper function to get full image URL
+ * Now optimized for Cloudinary URLs stored in MongoDB database
+ * - Cloudinary URLs (https://) are returned directly
+ * - Missing images show placeholder
+ * - Backward compatibility for old local paths (deprecated)
+ */
 function getImageUrl(imagePath) {
-  // ✅ If image missing → show placeholder
-  if (!imagePath) {
+  // If image is missing, return placeholder
+  if (!imagePath || imagePath.trim() === '') {
     return "https://via.placeholder.com/400x200?text=No+Image";
   }
 
-  // ✅ Cloudinary or any full URL
-  if (
-    imagePath.startsWith("http://") ||
-    imagePath.startsWith("https://")
-  ) {
+  // Cloudinary URLs (or any full URL) - return as-is
+  // MongoDB now stores full Cloudinary URLs like: https://res.cloudinary.com/...
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
     return imagePath;
   }
 
-  // ✅ Old local uploads from backend
+  // Backward compatibility: Handle old local upload paths (deprecated)
+  // These should not be used if all images are migrated to Cloudinary
   if (imagePath.startsWith("/")) {
+    console.warn("⚠️ Local image path detected (deprecated):", imagePath);
     return `${API_BASE_URL}${imagePath}`;
   }
 
-  // ✅ Fallback
+  // Fallback for any other format (should not happen with Cloudinary)
+  console.warn("⚠️ Unexpected image path format:", imagePath);
   return `${API_BASE_URL}/${imagePath}`;
 }
 
@@ -47,9 +40,9 @@ const Storage = {
     getCart: async () => {
         const user = Storage.getUser();
         if (!user || !user.id) {
-            // Fallback to localStorage if not logged in
-            const localCart = localStorage.getItem('cart');
-            return localCart ? JSON.parse(localCart) : [];
+            // Clear cart for non-logged-in users and return empty array
+            localStorage.removeItem('cart');
+            return [];
         }
 
         try {
@@ -85,7 +78,12 @@ const Storage = {
     addToCart: async (item) => {
         const user = Storage.getUser();
         if (!user || !user.id) {
+            // Redirect to login page
+            const currentPath = window.location.pathname;
+            const isInPages = currentPath.includes('/pages/') || currentPath.includes('pages\\');
+            const loginPath = isInPages ? 'login.html' : 'pages/login.html';
             alert("Please login first to add items to cart");
+            window.location.href = loginPath;
             return [];
         }
 
@@ -237,8 +235,18 @@ const Storage = {
         localStorage.setItem('registeredUsers', JSON.stringify(users));
     },
 
-    logout: () => {
+    logout: async () => {
+        // Clear cart before logout
+        try {
+            await Storage.clearCart();
+        } catch (error) {
+            console.error('Error clearing cart on logout:', error);
+        }
+        
+        // Clear user data
         localStorage.removeItem('user');
+        localStorage.removeItem('cart'); // Also clear localStorage cart
+        
         // Get the current page's pathname or href
         const currentPath = window.location.pathname || window.location.href;
         
@@ -630,9 +638,7 @@ function initializeUserNavigation() {
                     <div class="profile-email">${user.email}</div>
                 </div>
                 <ul class="profile-dropdown-menu">
-                    <li><a href="#" onclick="event.preventDefault(); closeProfileDropdown();"><span class="icon">👤</span> My Profile</a></li>
                     <li><a href="${trackingPath}"><span class="icon">📦</span> My Orders</a></li>
-                    <li><a href="#" onclick="event.preventDefault(); closeProfileDropdown();"><span class="icon">⚙️</span> Settings</a></li>
                     <li class="divider"></li>
                     <li class="logout-item"><a href="#" onclick="event.preventDefault(); handleLogout();"><span class="icon">🚪</span> Logout</a></li>
                 </ul>
@@ -681,7 +687,15 @@ function closeProfileDropdown() {
 // Handle logout
 function handleLogout() {
     if (confirm('Are you sure you want to logout?')) {
-        Storage.logout();
+        // Clear user data
+        localStorage.removeItem('user');
+        // Close dropdown
+        closeProfileDropdown();
+        // Redirect to login page
+        const currentPath = window.location.pathname;
+        const isInPages = currentPath.includes('/pages/') || currentPath.includes('pages\\');
+        const loginPath = isInPages ? 'login.html' : 'pages/login.html';
+        window.location.href = loginPath;
     }
 }
 
@@ -711,8 +725,8 @@ function initializeAdminNavigation() {
     
     if (!navLinks) return;
     
-    // Check if user is admin
-    const isAdmin = user && user.isAdmin && user.email === 'admin@gmail.com';
+    // Check if user is admin (supports both admin@gmail.com and Admin)
+    const isAdmin = user && user.isAdmin && (user.email === 'admin@gmail.com' || user.email === 'Admin');
     
     if (!isAdmin) {
         return; // Don't initialize if not admin
@@ -773,6 +787,19 @@ document.addEventListener('click', (e) => {
 
 // Initialize cart badge on page load
 document.addEventListener('DOMContentLoaded', async () => {
+    // Clear cart if user is not logged in
+    const user = Storage.getUser();
+    if (!user || !user.id) {
+        // Clear localStorage cart for non-logged-in users
+        localStorage.removeItem('cart');
+        // Update cart badge to show 0
+        const badge = document.querySelector('.cart-badge');
+        if (badge) {
+            badge.textContent = '0';
+            badge.style.display = 'none';
+        }
+    }
+    
     await updateCartBadge();
     
     // Only initialize user navigation if not on admin page

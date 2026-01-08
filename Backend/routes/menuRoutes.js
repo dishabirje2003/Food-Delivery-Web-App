@@ -89,14 +89,16 @@ router.get("/restaurant/:restaurantId", async (req, res) => {
   }
 });
 
-// GET single menu item by ID
-router.get("/:id", async (req, res) => {
+// GET single menu item by ID (must come before /:id routes)
+router.get("/item/:id", async (req, res) => {
   try {
     const menuItem = await Menu.findById(req.params.id);
     if (!menuItem) {
       return res.status(404).json({ message: "Menu item not found" });
     }
-    res.json(menuItem);
+    const menuItemData = menuItem.toObject();
+    menuItemData._id = menuItemData._id.toString();
+    res.json(menuItemData);
   } catch (error) {
     console.error("Error fetching menu item:", error);
     res.status(500).json({ message: "Server error" });
@@ -112,14 +114,29 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "All fields required" });
     }
 
+    // Convert restaurantId to ObjectId if it's a valid ObjectId string
+    const mongoose = require("mongoose");
+    let restaurantIdToUse = restaurantId;
+    
+    if (mongoose.Types.ObjectId.isValid(restaurantId)) {
+      restaurantIdToUse = new mongoose.Types.ObjectId(restaurantId);
+    }
+
     // Verify restaurant exists
-    const restaurant = await Restaurant.findById(restaurantId);
+    const restaurant = await Restaurant.findById(restaurantIdToUse);
     if (!restaurant) {
-      return res.status(404).json({ message: "Restaurant not found" });
+      // Try finding by string ID as fallback
+      const restaurantByString = await Restaurant.findOne({ _id: restaurantId });
+      if (!restaurantByString) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+      restaurantIdToUse = restaurantByString._id;
+    } else {
+      restaurantIdToUse = restaurant._id;
     }
 
     const menuItem = new Menu({
-      restaurantId,
+      restaurantId: restaurantIdToUse,
       name,
       description,
       price,
@@ -128,10 +145,12 @@ router.post("/", async (req, res) => {
     });
 
     await menuItem.save();
-    res.status(201).json(menuItem);
+    const menuItemData = menuItem.toObject();
+    menuItemData._id = menuItemData._id.toString();
+    res.status(201).json(menuItemData);
   } catch (error) {
     console.error("Error creating menu item:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
@@ -152,9 +171,44 @@ router.put("/:id", async (req, res) => {
     if (available !== undefined) menuItem.available = available;
 
     await menuItem.save();
-    res.json(menuItem);
+    const menuItemData = menuItem.toObject();
+    menuItemData._id = menuItemData._id.toString();
+    res.json(menuItemData);
   } catch (error) {
     console.error("Error updating menu item:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// DELETE menu item (for admin)
+router.delete("/:id", async (req, res) => {
+  try {
+    const menuItem = await Menu.findById(req.params.id);
+    if (!menuItem) {
+      return res.status(404).json({ message: "Menu item not found" });
+    }
+
+    await Menu.findByIdAndDelete(req.params.id);
+    res.json({ message: "Menu item deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting menu item:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// GET all menu items (for admin) - must be last GET route
+router.get("/", async (req, res) => {
+  try {
+    const menuItems = await Menu.find().sort({ createdAt: -1 }).lean();
+    const menuItemsData = menuItems.map(item => {
+      if (item._id) {
+        item._id = item._id.toString ? item._id.toString() : String(item._id);
+      }
+      return item;
+    });
+    res.json(menuItemsData);
+  } catch (error) {
+    console.error("Error fetching all menu items:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

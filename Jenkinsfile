@@ -55,31 +55,32 @@ pipeline {
 
         // ================= DEPLOY BACKEND ON EC2 =================
         stage('Deploy Backend on EC2') {
-            steps {
-                sshagent(['ec2-ssh-key']) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << EOF
-                      docker stop food-backend-container || true
-                      docker rm food-backend-container || true
+    steps {
+        sshagent(['ec2-ssh-key']) {
+            sh """
+            ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << 'EOF'
+            docker stop food-backend-container || true
+            docker rm food-backend-container || true
 
-                      docker pull ${DOCKER_USER}/food-backend:latest
+            docker pull ${DOCKER_USER}/food-backend:latest
 
-                      docker run -d \
-                        --name food-backend-container \
-                        -p 5000:5000 \
-                        -e MONGO_URI=${MONGO_URI} \
-                        ${DOCKER_USER}/food-backend:latest
-                    EOF
-                    '''
-                }
+            docker run -d \
+              --name food-backend-container \
+              -p 5000:5000 \
+              -e MONGO_URI=${MONGO_URI} \
+              ${DOCKER_USER}/food-backend:latest
+            EOF
+            """
             }
         }
+    }   
+
 
         // ================= DEPLOY FRONTEND ON EC2 =================
         stage('Deploy Frontend on EC2') {
             steps {
                 sshagent(['ec2-ssh-key']) {
-                    sh '''
+                    sh """
                     ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << EOF
                       docker stop food-frontend-container || true
                       docker rm food-frontend-container || true
@@ -91,7 +92,7 @@ pipeline {
                         -p 80:80 \
                         ${DOCKER_USER}/food-frontend:latest
                     EOF
-                    '''
+                    """
                 }
             }
         }

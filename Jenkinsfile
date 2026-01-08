@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         MONGO_URI = credentials('mongo_uri')
+        EC2_HOST = "13.126.18.236"
     }
 
     stages {
@@ -22,18 +23,21 @@ pipeline {
             }
         }
 
-        stage('Deploy Backend') {
+        stage('Deploy Backend to EC2') {
             steps {
-                sh '''
-                docker stop food-backend-container || true
-                docker rm food-backend-container || true
-
-                docker run -d \
-                --name food-backend-container \
-                -p 5000:5000 \
-                --env MONGO_URI=$MONGO_URI \
-                food-backend-image
-                '''
+                sshagent(credentials: ['ec2-ssh-key']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} '
+                        docker stop food-backend-container || true
+                        docker rm food-backend-container || true
+                        docker run -d \
+                        --name food-backend-container \
+                        -p 5000:5000 \
+                        -e MONGO_URI=${MONGO_URI} \
+                        food-backend-image
+                    '
+                    """
+                }
             }
         }
 
@@ -44,27 +48,30 @@ pipeline {
             }
         }
 
-        stage('Deploy Frontend') {
+        stage('Deploy Frontend to EC2') {
             steps {
-                sh '''
-                docker stop food-frontend-container || true
-                docker rm food-frontend-container || true
-
-                docker run -d \
-                --name food-frontend-container \
-                -p 80:80 \
-                food-frontend-image
-                '''
+                sshagent(credentials: ['ec2-ssh-key']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} '
+                        docker stop food-frontend-container || true
+                        docker rm food-frontend-container || true
+                        docker run -d \
+                        --name food-frontend-container \
+                        -p 80:80 \
+                        food-frontend-image
+                    '
+                    """
+                }
             }
         }
     }
 
     post {
         success {
-            echo '✅ Full Application Deployed (Backend + Frontend)'
+            echo '✅ Application successfully deployed to AWS EC2!'
         }
         failure {
-            echo '❌ Deployment Failed'
+            echo '❌ Deployment failed!'
         }
     }
 }

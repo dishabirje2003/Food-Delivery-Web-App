@@ -572,7 +572,7 @@ function navigateTo(page) {
 
 // Format currency
 function formatCurrency(amount) {
-    return `$${amount.toFixed(2)}`;
+    return `₹${amount.toFixed(2)}`;
 }
 
 // Calculate cart total

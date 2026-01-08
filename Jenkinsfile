@@ -54,7 +54,6 @@ pipeline {
         }
 
         // ================= DEPLOY BACKEND ON EC2 =================
-        stage('Deploy Backend on EC2') {
             stage('Deploy Backend on EC2') {
             steps {
                 sshagent(['ec2-ssh-key']) {

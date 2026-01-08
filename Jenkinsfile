@@ -97,7 +97,7 @@ EOF
                 }
             }
         }
-
+    }
     post {
         success {
             echo '✅ Full Application Deployed Successfully on AWS EC2!'

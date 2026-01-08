@@ -58,7 +58,7 @@ async function loadRestaurants() {
     try {
         console.log("Fetching restaurants from backend...");
 
-        const res = await fetch("http://localhost:5000/api/restaurants");
+        const res = await fetch(`${API_BASE_URL}/api/restaurants`);
         if (!res.ok) throw new Error("Failed to fetch restaurants");
 
         allRestaurants = await res.json();

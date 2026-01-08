@@ -2,7 +2,8 @@
 
 // API_BASE_URL is already declared in utils.js
 // If it's not available (shouldn't happen since utils.js loads first), use default
-const ADMIN_API_BASE_URL = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : "http://localhost:5000";
+//const API_BASE_URL="http://localhost:5000"
+const ADMIN_API_BASE_URL = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : "http://13.126.18.236:5000";
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Check admin authentication

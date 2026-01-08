@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Regular user login - try backend API
       try {
-        const res = await fetch("http://localhost:5000/api/auth/login", {
+        const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const res = await fetch("http://localhost:5000/api/auth/signup", {
+        const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

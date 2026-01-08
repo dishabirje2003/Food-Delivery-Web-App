@@ -1,14 +1,16 @@
 // Utility functions for the Food Delivery System
 
 // Backend API base URL
-const API_BASE_URL = "http://localhost:5000";
+//const API_BASE_URL = "http://localhost:5000";
+
+const API_BASE_URL = "http://13.126.18.236:5000";
+
 
 /**
  * Helper function to get full image URL
- * Now optimized for Cloudinary URLs stored in MongoDB database
- * - Cloudinary URLs (https://) are returned directly
+ * Only supports Cloudinary URLs stored in MongoDB database
+ * - Cloudinary URLs (https://) are returned as-is
  * - Missing images show placeholder
- * - Backward compatibility for old local paths (deprecated)
  */
 function getImageUrl(imagePath) {
   // If image is missing, return placeholder
@@ -17,21 +19,14 @@ function getImageUrl(imagePath) {
   }
 
   // Cloudinary URLs (or any full URL) - return as-is
-  // MongoDB now stores full Cloudinary URLs like: https://res.cloudinary.com/...
+  // MongoDB stores full Cloudinary URLs like: https://res.cloudinary.com/...
   if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
     return imagePath;
   }
 
-  // Backward compatibility: Handle old local upload paths (deprecated)
-  // These should not be used if all images are migrated to Cloudinary
-  if (imagePath.startsWith("/")) {
-    console.warn("⚠️ Local image path detected (deprecated):", imagePath);
-    return `${API_BASE_URL}${imagePath}`;
-  }
-
-  // Fallback for any other format (should not happen with Cloudinary)
-  console.warn("⚠️ Unexpected image path format:", imagePath);
-  return `${API_BASE_URL}/${imagePath}`;
+  // If not a full URL, return placeholder (should not happen with Cloudinary)
+  console.warn("⚠️ Invalid image path format (expected Cloudinary URL):", imagePath);
+  return "https://via.placeholder.com/400x200?text=No+Image";
 }
 
 // LocalStorage helpers
@@ -46,7 +41,7 @@ const Storage = {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/cart/${user.id}`);
+            const response = await fetch(`${API_BASE_URL}/api/cart/${user.id}`);
             if (response.ok) {
                 const cart = await response.json();
                 // Update cart badge
@@ -88,7 +83,7 @@ const Storage = {
         }
 
         try {
-            const response = await fetch("http://localhost:5000/api/cart/add", {
+            const response = await fetch(`${API_BASE_URL}/api/cart/add`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -133,7 +128,7 @@ const Storage = {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/cart/${user.id}/${itemId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/cart/${user.id}/${itemId}`, {
                 method: "DELETE"
             });
 
@@ -170,7 +165,7 @@ const Storage = {
         }
 
         try {
-            const response = await fetch("http://localhost:5000/api/cart/update", {
+            const response = await fetch(`${API_BASE_URL}/api/cart/update`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
@@ -203,7 +198,7 @@ const Storage = {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/cart/${user.id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/cart/${user.id}`, {
                 method: "DELETE"
             });
 
@@ -309,7 +304,7 @@ const Storage = {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/orders/user/${user.id}`);
+            const response = await fetch(`${API_BASE_URL}/api/orders/user/${user.id}`);
             if (response.ok) {
                 const orders = await response.json();
                 // Remove duplicates based on _id or id (extra safety check)
@@ -344,7 +339,7 @@ const Storage = {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/orders/order/${orderId}`);
+            const response = await fetch(`${API_BASE_URL}/api/orders/order/${orderId}`);
             if (response.ok) {
                 return await response.json();
             }
@@ -388,7 +383,7 @@ const Storage = {
     getRestaurants: async () => {
         // Try backend API first
         try {
-            const response = await fetch("http://localhost:5000/api/restaurants");
+            const response = await fetch(`${API_BASE_URL}/api/restaurants`);
             if (response.ok) {
                 const restaurants = await response.json();
                 console.log(`✅ Successfully loaded ${restaurants.length} restaurants from backend API`);
@@ -473,7 +468,7 @@ const Storage = {
         // Try backend API first
         try {
             console.log(`🔍 Fetching menu items for restaurant: ${restaurantId}`);
-            const response = await fetch(`http://localhost:5000/api/menu/restaurant/${restaurantId}`);
+            const response = await fetch(`${API_BASE_URL}/api/menu/restaurant/${restaurantId}`);
             console.log(`Response status: ${response.status}`);
             
             if (response.ok) {

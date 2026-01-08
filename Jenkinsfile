@@ -3,59 +3,93 @@ pipeline {
 
     environment {
         MONGO_URI = credentials('mongo_uri')
-        EC2_HOST = "13.126.18.236"   // replace if EC2 IP changes
+        EC2_HOST = "13.126.18.236"   // your EC2 public IP
+        DOCKER_USER = "birjedisha"
     }
 
     stages {
 
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/dishabirje2003/Food-Delivery-Web-App.git'
+                git branch: 'main',
+                    url: 'https://github.com/dishabirje2003/Food-Delivery-Web-App.git'
             }
         }
 
         // ================= BACKEND =================
-        stage('Deploy Backend to EC2') {
+        stage('Build Backend Image') {
+            steps {
+                dir('Backend') {
+                    sh 'docker build -t food-backend-image .'
+                }
+            }
+        }
+
+        // ================= FRONTEND =================
+        stage('Build Frontend Image') {
+            steps {
+                sh 'docker build -t food-frontend-image -f Dockerfile.frontend .'
+            }
+        }
+
+        // ================= PUSH TO DOCKER HUB =================
+        stage('Push Images to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DH_USER',
+                    passwordVariable: 'DH_PASS'
+                )]) {
+                    sh '''
+                    echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+
+                    docker tag food-backend-image $DH_USER/food-backend:latest
+                    docker tag food-frontend-image $DH_USER/food-frontend:latest
+
+                    docker push $DH_USER/food-backend:latest
+                    docker push $DH_USER/food-frontend:latest
+                    '''
+                }
+            }
+        }
+
+        // ================= DEPLOY BACKEND ON EC2 =================
+        stage('Deploy Backend on EC2') {
             steps {
                 sshagent(['ec2-ssh-key']) {
                     sh '''
                     ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << EOF
-                      cd ~
-                      rm -rf Food-Delivery-Web-App
-                      git clone https://github.com/dishabirje2003/Food-Delivery-Web-App.git
-                      cd Food-Delivery-Web-App/Backend
-
                       docker stop food-backend-container || true
                       docker rm food-backend-container || true
 
-                      docker build -t food-backend-image .
+                      docker pull ${DOCKER_USER}/food-backend:latest
+
                       docker run -d \
                         --name food-backend-container \
                         -p 5000:5000 \
                         -e MONGO_URI=${MONGO_URI} \
-                        food-backend-image
+                        ${DOCKER_USER}/food-backend:latest
                     EOF
                     '''
                 }
             }
         }
 
-        // ================= FRONTEND =================
-        stage('Deploy Frontend to EC2') {
+        // ================= DEPLOY FRONTEND ON EC2 =================
+        stage('Deploy Frontend on EC2') {
             steps {
                 sshagent(['ec2-ssh-key']) {
                     sh '''
                     ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << EOF
-                      cd ~/Food-Delivery-Web-App
-
                       docker stop food-frontend-container || true
                       docker rm food-frontend-container || true
 
-                      docker build -t food-frontend-image -f Dockerfile.frontend .
+                      docker pull ${DOCKER_USER}/food-frontend:latest
+
                       docker run -d \
                         --name food-frontend-container \
                         -p 80:80 \
-                        food-frontend-image
+                        ${DOCKER_USER}/food-frontend:latest
                     EOF
                     '''
                 }
@@ -65,10 +99,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Backend + Frontend deployed successfully on AWS EC2!'
+            echo '✅ Full Application Deployed Successfully on AWS EC2!'
         }
         failure {
-            echo '❌ Deployment failed. Check logs.'
+            echo '❌ Deployment Failed. Check logs.'
         }
     }
 }

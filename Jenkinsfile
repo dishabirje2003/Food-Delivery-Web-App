@@ -97,7 +97,6 @@ EOF
                 }
             }
         }
-    }
 
     post {
         success {

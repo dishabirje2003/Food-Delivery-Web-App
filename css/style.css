@@ -1004,12 +1004,10 @@ footer {
     justify-content: center;
     flex-wrap: wrap;
     animation: fadeInUp 0.8s ease 0.4s both;
-    position : relative;
 }
 
 .btn-hero-primary {
     background: white;
-    position : fixed;
     color: var(--primary-color);
     padding: 1rem 2.5rem;
     font-size: 1.1rem;
@@ -1018,9 +1016,6 @@ footer {
     text-decoration: none;
     transition: all 0.3s;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    transform: translate(-50%, -50%);
-    z-index: 10;
-    
 }
 
 .btn-hero-primary:hover {

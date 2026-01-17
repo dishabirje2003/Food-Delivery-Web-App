@@ -139,7 +139,7 @@ pipeline {
             }
         }
 
-        stage('Push Images to Docker Hub') {
+        /*stage('Push Images to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
@@ -157,7 +157,27 @@ pipeline {
                     '''
                 }
             }
+        }*/
+        stage('Push Images to Docker Hub') {
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'dockerhub-creds',
+            usernameVariable: 'DH_USER',
+            passwordVariable: 'DH_PASS'
+        )]) {
+            sh '''
+            echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+
+            docker tag food-backend-image $DH_USER/food-backend:latest
+            docker tag food-frontend-image $DH_USER/food-frontend:latest
+
+            docker push $DH_USER/food-backend:latest
+            docker push $DH_USER/food-frontend:latest
+            '''
         }
+    }
+}
+
 
         stage('Deploy Backend on EC2') {
             steps {

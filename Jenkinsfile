@@ -179,7 +179,7 @@ pipeline {
 }
 
 
-        stage('Deploy Backend on EC2') {
+        /*stage('Deploy Backend on EC2') {
             steps {
                 sshagent(['ec2-ssh-key']) {
                     sh """
@@ -198,7 +198,28 @@ EOF
 """
                 }
             }
+        }*/
+        stage('Deploy Backend on EC2') {
+    steps {
+        sshagent(['ec2-ssh-key']) {
+            sh '''
+ssh -o StrictHostKeyChecking=no ubuntu@13.126.18.236 << EOF
+docker stop food-backend-container || true
+docker rm food-backend-container || true
+
+docker pull birjedisha/food-backend:latest
+
+docker run -d \
+  --name food-backend-container \
+  -p 5000:5000 \
+  -e MONGO_URI="$MONGO_URI" \
+  birjedisha/food-backend:latest
+EOF
+'''
         }
+    }
+}
+
 
         stage('Deploy Frontend on EC2') {
             steps {

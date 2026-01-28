@@ -110,7 +110,7 @@ pipeline {
                 '''
                 }
             }
-}
+        }
 
 
         stage('Deploy Frontend on EC2') {

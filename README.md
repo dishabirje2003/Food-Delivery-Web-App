@@ -1,6 +1,6 @@
 # Food Delivery System
 
-A frontend-only Food Delivery Web Application built with HTML, CSS, and JavaScript. Perfect for DevOps projects with GitHub, Jenkins, Docker, Kubernetes, and Terraform.
+A frontend-only Food Delivery Web Application built with HTML, CSS, and JavaScript. Perfect for DevOps projects with GitHub, Jenkins, Docker, DckerHub, and AWS.
 
 ## Features
 
@@ -13,36 +13,13 @@ A frontend-only Food Delivery Web Application built with HTML, CSS, and JavaScri
 - 📱 **Responsive Design** for all devices
 
 ## Quick Start
-
-### Option 1: Using Python (Recommended)
-
-1. Open a terminal in the project directory
-2. Run one of these commands:
-
-**Windows (PowerShell):**
-```powershell
-.\start-server.ps1
-```
-
-**Windows (Command Prompt):**
-```cmd
-start-server.bat
-```
-
-**Linux/Mac:**
-```bash
-python3 -m http.server 8000
-```
-
-3. Open your browser and go to: `http://localhost:8000`
-
-### Option 2: Using VS Code Live Server
+### Option 1: Using VS Code Live Server
 
 1. Install the "Live Server" extension in VS Code
 2. Right-click on `index.html`
 3. Select "Open with Live Server"
 
-### Option 3: Using Node.js (if you have it)
+### Option 2: Using Node.js (if you have it)
 
 ```bash
 npx http-server -p 8000
@@ -143,8 +120,8 @@ This application is designed to work well with:
 - **GitHub** - Version control
 - **Jenkins** - CI/CD pipelines
 - **Docker** - Containerization
-- **Kubernetes** - Orchestration
-- **Terraform** - Infrastructure as Code
+- **DokerHub** - Docker image versioning
+- **AWS** - Deploying application
 
 The clean structure and modular code make it easy to containerize and deploy.
 
